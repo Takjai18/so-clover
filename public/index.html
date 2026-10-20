@@ -1,0 +1,1720 @@
+<!DOCTYPE html>
+<html lang="zh-HK">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+  <title>🍀 四葉草神聯想 So Clover! | 破冰遊戲</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@500;700;900&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --game-pink-bg: #F08CAE;
+      --game-pink-btn: #E63E7A;
+      --game-yellow-bg: #F3C242;
+      --game-brown-text: #4A3222;
+      --game-orange-bg: #EA6A00;
+      --game-blue-bg: #1EA1E8;
+      --game-blue-tag: #0D74B8;
+      --game-green-bg: #5CB346;
+      --game-taupe-bg: #916E57;
+    }
+    body {
+      font-family: 'Noto Sans TC', 'PingFang HK', sans-serif;
+      background-color: var(--game-pink-bg);
+      color: var(--game-brown-text);
+      overflow-x: hidden;
+      user-select: none;
+    }
+    .dashed-divider {
+      border-top: 6px dashed rgba(255, 255, 255, 0.85);
+    }
+    .section-badge {
+      background-color: var(--game-pink-btn);
+      color: #FFFFFF;
+      border: 3px solid #FFFFFF;
+      border-radius: 9999px;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+      display: inline-flex;
+      align-items: center;
+      gap: 0.5rem;
+      padding: 0.5rem 1.5rem;
+      font-weight: 900;
+      letter-spacing: 0.05em;
+    }
+    .game-card {
+      background: #FFFFFF;
+      border-radius: 28px;
+      padding: 24px;
+      box-shadow: 0 8px 20px rgba(0,0,0,0.08);
+    }
+    .game-card-active {
+      outline: 4px solid #FFFFFF;
+      outline-offset: 4px;
+    }
+    .pill-btn {
+      border-radius: 9999px;
+      font-weight: 800;
+      transition: all 0.15s ease;
+      box-shadow: 0 4px 0 rgba(0,0,0,0.18);
+    }
+    .pill-btn:active {
+      transform: translateY(2px);
+      box-shadow: 0 2px 0 rgba(0,0,0,0.18);
+    }
+    /* 四葉草板視覺樣式 */
+    .clover-board {
+      background: linear-gradient(135deg, #5CB346 0%, #3E8E2A 100%);
+      border: 6px solid #FFFFFF;
+      border-radius: 44px;
+      box-shadow: 0 12px 28px rgba(0,0,0,0.18);
+      position: relative;
+    }
+    /* 正方形四詞卡 */
+    .word-square {
+      aspect-ratio: 1 / 1;
+      background: #FFFDF7;
+      border: 3px solid #E2D5C1;
+      border-radius: 18px;
+      position: relative;
+      box-shadow: 0 4px 10px rgba(0,0,0,0.08);
+      transition: transform 0.25s cubic-bezier(0.34, 1.56, 0.64, 1), box-shadow 0.2s;
+    }
+    .word-square:hover {
+      box-shadow: 0 8px 18px rgba(0,0,0,0.15);
+    }
+    .word-square.locked-correct {
+      border-color: #5CB346;
+      background-color: #F0FDF4;
+      box-shadow: 0 0 0 4px rgba(92, 179, 70, 0.35);
+    }
+    .word-square.selected-card {
+      border-color: #E63E7A;
+      box-shadow: 0 0 0 4px rgba(230, 62, 122, 0.4);
+      transform: scale(1.03);
+    }
+    .slot-box {
+      aspect-ratio: 1 / 1;
+      border: 3px dashed rgba(255,255,255,0.75);
+      border-radius: 20px;
+      background: rgba(255,255,255,0.16);
+      transition: all 0.2s;
+    }
+    .slot-box.highlight-slot {
+      background: rgba(243, 194, 66, 0.45);
+      border-color: #F3C242;
+      border-style: solid;
+    }
+    .clue-pill {
+      background: #FFF9E6;
+      border: 3px solid #F3C242;
+      color: #4A3222;
+      border-radius: 9999px;
+      font-weight: 900;
+      box-shadow: 0 4px 10px rgba(0,0,0,0.12);
+    }
+  </style>
+</head>
+<body class="min-h-screen flex flex-col justify-between">
+
+  <!-- 頂部導覽列 Top Navigation Bar -->
+  <header class="w-full px-4 py-3 bg-white/95 backdrop-blur sticky top-0 z-40 shadow-sm border-b-4 border-[#F3C242]">
+    <div class="max-w-7xl mx-auto flex flex-wrap items-center justify-between gap-2">
+      <div class="flex items-center gap-2">
+        <span class="text-3xl">🍀</span>
+        <div>
+          <h1 class="text-xl md:text-2xl font-black tracking-tight text-[#4A3222]">四葉草神聯想 <span class="text-sm md:text-base font-bold text-[#E63E7A]">So Clover!</span></h1>
+        </div>
+      </div>
+
+      <div class="flex flex-wrap items-center gap-2">
+        <!-- 連線狀態 Badge -->
+        <div id="connStatusBadge" class="px-3 py-1.5 rounded-full text-xs md:text-sm font-black bg-[#1EA1E8] text-white flex items-center gap-1.5">
+          <span id="connDot" class="w-2.5 h-2.5 rounded-full bg-yellow-300 animate-pulse"></span>
+          <span id="connText">單機/未連房</span>
+        </div>
+
+        <button onclick="openQRModal()" class="pill-btn px-3.5 py-1.5 bg-[#F3C242] text-[#4A3222] text-xs md:text-sm hover:brightness-105">
+          📱 QR Code
+        </button>
+        <button onclick="openRulesModal()" class="pill-btn px-3.5 py-1.5 bg-[#0D74B8] text-white text-xs md:text-sm hover:brightness-110">
+          📖 規則
+        </button>
+        <button onclick="openSettingsModal()" class="pill-btn px-3.5 py-1.5 bg-[#5CB346] text-white text-xs md:text-sm hover:brightness-110">
+          ⚙️ 設定/題庫
+        </button>
+        <button onclick="confirmResetGame()" class="pill-btn px-3.5 py-1.5 bg-[#EA6A00] text-white text-xs md:text-sm hover:brightness-110">
+          🔄 重開
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <!-- 主內容區 Main Content -->
+  <main class="flex-1 w-full max-w-7xl mx-auto px-4 py-6 space-y-6">
+
+    <!-- 頂部狀態橫幅與計分板 -->
+    <section class="text-center space-y-4">
+      <div>
+        <div id="phaseBadge" class="section-badge text-base md:text-lg">
+          <span>🍀</span>
+          <span id="phaseTitleText">準備開始・建立或加入房間</span>
+        </div>
+      </div>
+
+      <!-- 團隊／玩家計分列 Scoreboard -->
+      <div id="scoreboardBar" class="bg-[#1EA1E8] p-3 md:p-4 rounded-3xl border-4 border-white shadow-md">
+        <div class="flex flex-wrap items-center justify-between gap-2 mb-2 px-2">
+          <span class="text-white font-black text-sm md:text-base flex items-center gap-1">🏆 團友 / 組別積分榜</span>
+          <span id="coopScoreDisplay" class="bg-white text-[#0D74B8] px-3 py-0.5 rounded-full text-xs md:text-sm font-black">
+            全場默契總分：0 分
+          </span>
+        </div>
+        <div id="teamsContainer" class="flex flex-wrap items-center justify-center gap-2 md:gap-3">
+          <!-- 動態產生組別或連線玩家分數 -->
+        </div>
+      </div>
+    </section>
+
+    <div class="dashed-divider my-2"></div>
+
+    <!-- ==========================================
+         VIEW 1: 房間大廳與角色選擇 (LOBBY VIEW)
+    =========================================== -->
+    <section id="viewLobby" class="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
+      <!-- 左側：多人連線房間設定 (Mode C) -->
+      <div class="lg:col-span-7 game-card space-y-5">
+        <div class="flex items-center justify-between border-b-2 border-gray-100 pb-3">
+          <h2 class="text-xl md:text-2xl font-black text-[#4A3222] flex items-center gap-2">
+            <span>📡</span> 多機即時連線大廳 (Mode C)
+          </h2>
+          <span class="text-xs font-bold px-3 py-1 rounded-full bg-pink-100 text-[#E63E7A]">支援手機出題 + 大螢幕競猜</span>
+        </div>
+
+        <!-- 房間號碼與連線控制 -->
+        <div class="bg-[#FFF9E6] border-2 border-[#F3C242] rounded-2xl p-4 space-y-4">
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+            <div>
+              <label class="block text-xs font-black text-[#4A3222] mb-1">4 位數房間號碼 (Room PIN)</label>
+              <div class="flex gap-2">
+                <input id="inputRoomId" type="text" maxlength="6" placeholder="例如: 8888"
+                  class="w-full px-3 py-2 rounded-xl border-2 border-[#4A3222]/30 font-black text-lg uppercase text-center focus:outline-none focus:border-[#E63E7A]" />
+                <button onclick="generateRandomRoomId()" class="pill-btn px-3 py-2 bg-[#F3C242] text-[#4A3222] text-xs whitespace-nowrap">
+                  🎲 隨機
+                </button>
+              </div>
+            </div>
+            <div>
+              <label class="block text-xs font-black text-[#4A3222] mb-1">你嘅名稱 / 組別名</label>
+              <input id="inputPlayerName" type="text" maxlength="12" placeholder="例如: 主持 / 第一組 / 小明"
+                class="w-full px-3 py-2 rounded-xl border-2 border-[#4A3222]/30 font-bold text-base focus:outline-none focus:border-[#E63E7A]" />
+            </div>
+          </div>
+
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-1">
+            <button onclick="joinAsHost()" class="pill-btn w-full py-3 bg-[#E63E7A] text-white text-base md:text-lg flex items-center justify-center gap-2">
+              <span>🖥️</span> 我係主持（開啟大螢幕房間）
+            </button>
+            <button onclick="joinAsPlayer()" class="pill-btn w-full py-3 bg-[#0D74B8] text-white text-base md:text-lg flex items-center justify-center gap-2">
+              <span>📱</span> 我係團友（手機入房寫提示）
+            </button>
+          </div>
+
+          <div class="text-xs text-gray-600 bg-white/80 rounded-xl p-2.5 flex items-center justify-between gap-2">
+            <span>💡 <b>提示：</b>如果未部署 Worker 後端，亦可以直接撳右邊「⚡ 單機／投影機即玩模式」免連線即刻開局！</span>
+          </div>
+        </div>
+
+        <!-- 已入房玩家列表 -->
+        <div class="space-y-2">
+          <div class="flex items-center justify-between">
+            <h3 class="font-black text-base text-[#4A3222]">👥 已連線入房團友 (<span id="lobbyPlayerCount">0</span> 人)</h3>
+            <button onclick="sendDrawBoardsCommand()" id="btnHostDispatch" class="pill-btn px-4 py-1.5 bg-[#5CB346] text-white text-sm">
+              🍀 派發四葉草板畀所有人出題
+            </button>
+          </div>
+          <div id="lobbyPlayersList" class="grid grid-cols-2 sm:grid-cols-3 gap-2 min-h-[72px] bg-gray-50 p-3 rounded-2xl border-2 border-dashed border-gray-200">
+            <div class="col-span-full text-center text-gray-400 text-sm py-4">暫時未有手機連入，請掃描右上角 QR Code 或直接開局</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- 右側：快速單機/同機破冰開局 & 遊戲設定 -->
+      <div class="lg:col-span-5 game-card space-y-4">
+        <h2 class="text-xl font-black text-[#4A3222] flex items-center gap-2 border-b-2 border-gray-100 pb-3">
+          <span>⚡</span> 快速破冰設定 & 單機即玩
+        </h2>
+
+        <div class="space-y-3 text-sm">
+          <div class="flex items-center justify-between bg-gray-50 p-3 rounded-xl">
+            <span class="font-bold">🕵️ 亂入干擾字卡數量</span>
+            <select id="selectDecoyCount" onchange="updateSettingsFromUI()" class="font-black bg-white border-2 border-gray-300 rounded-lg px-3 py-1">
+              <option value="1">1 張干擾卡（標準破冰・5選4）</option>
+              <option value="2">2 張干擾卡（進階燒腦・6選4）</option>
+            </select>
+          </div>
+
+          <div class="flex items-center justify-between bg-gray-50 p-3 rounded-xl">
+            <span class="font-bold">⏱️ 競猜討論倒數計時</span>
+            <select id="selectTimerSeconds" onchange="updateSettingsFromUI()" class="font-black bg-white border-2 border-gray-300 rounded-lg px-3 py-1">
+              <option value="180">3 分鐘（180 秒）</option>
+              <option value="120">2 分鐘（120 秒）</option>
+              <option value="240">4 分鐘（240 秒）</option>
+              <option value="0">不限時</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="p-4 rounded-2xl bg-[#F3C242]/25 border-2 border-[#F3C242] space-y-3">
+          <h3 class="font-black text-base text-[#4A3222]">🎯 即場快速出題 / AI 自動出題模式</h3>
+          <p class="text-xs text-[#4A3222]/80 leading-relaxed">
+            就算唔用多部手機連線，都可以由 **1 位團友喺呢部機秘密輸入 4 個提示詞**，然後全場一齊喺大螢幕估！
+          </p>
+          <div class="grid grid-cols-1 gap-2">
+            <button onclick="startLocalClueWriting()" class="pill-btn w-full py-3 bg-[#E63E7A] text-white text-base">
+              ✍️ 單機輪流出題（1人秘密寫提示 -> 全場估）
+            </button>
+            <button onclick="startBuiltinPresetPuzzle()" class="pill-btn w-full py-2.5 bg-[#5CB346] text-white text-sm">
+              🎲 載入內置精選題目（主持免出題・全場即刻估）
+            </button>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ==========================================
+         VIEW 2: 出題者秘密輸入提示詞介面 (WRITING VIEW)
+    =========================================== -->
+    <section id="viewWriting" class="hidden space-y-6">
+      <div class="game-card max-w-4xl mx-auto space-y-6">
+        <div class="flex flex-wrap items-center justify-between gap-2 border-b-2 border-gray-100 pb-4">
+          <div>
+            <span class="px-3 py-1 rounded-full bg-[#E63E7A] text-white text-xs font-black">出題秘密畫面・請勿畀負責估嘅團友偷睇</span>
+            <h2 class="text-xl md:text-2xl font-black mt-1">✍️ 請為你嘅四葉草板輸入 4 個雙詞聯想提示</h2>
+          </div>
+          <button onclick="rerollMyWritingBoard()" class="pill-btn px-4 py-2 bg-[#F3C242] text-[#4A3222] text-sm">
+            🔄 換過 4 張字卡
+          </button>
+        </div>
+
+        <!-- 視覺化預覽自己嘅 4 張卡同 4 個相鄰組合 -->
+        <div class="grid grid-cols-1 lg:grid-cols-12 gap-6 items-center">
+          <!-- 左：四葉草預覽 -->
+          <div class="lg:col-span-6 clover-board p-5 text-white">
+            <div class="text-center font-black text-sm mb-2 bg-black/20 py-1 rounded-full">
+              ⬆️ 北方組合：<span id="writePairNorth" class="text-[#F3C242]">-- + --</span>
+            </div>
+            <div class="grid grid-cols-2 gap-3 my-2" id="writingPreviewGrid">
+              <!-- 由 JS 渲染 4 張固定字卡 -->
+            </div>
+            <div class="text-center font-black text-sm mt-2 bg-black/20 py-1 rounded-full">
+              ⬇️ 南方組合：<span id="writePairSouth" class="text-[#F3C242]">-- + --</span>
+            </div>
+            <div class="flex justify-between text-xs font-black mt-2 gap-2">
+              <div class="bg-black/20 px-3 py-1 rounded-full">⬅️ 西：<span id="writePairWest" class="text-[#F3C242]">-- + --</span></div>
+              <div class="bg-black/20 px-3 py-1 rounded-full">➡️ 東：<span id="writePairEast" class="text-[#F3C242]">-- + --</span></div>
+            </div>
+          </div>
+
+          <!-- 右：輸入 4 個提示詞 -->
+          <div class="lg:col-span-6 space-y-4">
+            <div class="bg-[#FFF9E6] p-3 rounded-xl border-2 border-[#F3C242] text-xs font-bold">
+              ⚠️ <b>出題規則：</b>每個提示詞必須同時聯想到嗰一邊嘅 <b>2 個詞語</b>！唔可以用詞語本身嘅字（同音字或拆字都唔得）。
+            </div>
+
+            <div class="space-y-3">
+              <div>
+                <label class="block text-sm font-black mb-1">⬆️ 北方葉片提示（聯想：<span id="lblPairN" class="text-[#E63E7A]"></span>）</label>
+                <input id="clueInputN" type="text" maxlength="12" placeholder="輸入 1 個詞語..."
+                  class="w-full px-4 py-2.5 rounded-xl border-2 border-gray-300 font-black text-base focus:outline-none focus:border-[#E63E7A]" />
+              </div>
+              <div>
+                <label class="block text-sm font-black mb-1">➡️ 東方葉片提示（聯想：<span id="lblPairE" class="text-[#E63E7A]"></span>）</label>
+                <input id="clueInputE" type="text" maxlength="12" placeholder="輸入 1 個詞語..."
+                  class="w-full px-4 py-2.5 rounded-xl border-2 border-gray-300 font-black text-base focus:outline-none focus:border-[#E63E7A]" />
+              </div>
+              <div>
+                <label class="block text-sm font-black mb-1">⬇️ 南方葉片提示（聯想：<span id="lblPairS" class="text-[#E63E7A]"></span>）</label>
+                <input id="clueInputS" type="text" maxlength="12" placeholder="輸入 1 個詞語..."
+                  class="w-full px-4 py-2.5 rounded-xl border-2 border-gray-300 font-black text-base focus:outline-none focus:border-[#E63E7A]" />
+              </div>
+              <div>
+                <label class="block text-sm font-black mb-1">⬅️ 西方葉片提示（聯想：<span id="lblPairW" class="text-[#E63E7A]"></span>）</label>
+                <input id="clueInputW" type="text" maxlength="12" placeholder="輸入 1 個詞語..."
+                  class="w-full px-4 py-2.5 rounded-xl border-2 border-gray-300 font-black text-base focus:outline-none focus:border-[#E63E7A]" />
+              </div>
+            </div>
+
+            <button onclick="submitMyClues()" class="pill-btn w-full py-3.5 bg-[#E63E7A] text-white text-lg">
+              ✅ 提交四葉草提示詞！
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <!-- 主持專用：查看邊個已經交咗題目並揀選上大螢幕 -->
+      <div id="hostSubmittedBoardsPanel" class="game-card max-w-4xl mx-auto space-y-3">
+        <div class="flex items-center justify-between">
+          <h3 class="font-black text-lg">📬 已提交嘅四葉草題目庫（點擊即可放上大螢幕全場競猜）</h3>
+          <button onclick="backToLobbyView()" class="text-xs font-bold text-gray-500 underline">返回大廳</button>
+        </div>
+        <div id="submittedBoardsList" class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3">
+          <!-- 動態顯示已交題目 -->
+        </div>
+      </div>
+    </section>
+
+    <!-- ==========================================
+         VIEW 3: 全場大螢幕競猜與旋轉擺位介面 (GUESSING VIEW)
+    =========================================== -->
+    <section id="viewGuessing" class="hidden space-y-6">
+      <!-- 狀態列：出題者資訊、第幾次機會、倒數計時 -->
+      <div class="bg-[#EA6A00] text-white p-4 rounded-3xl border-4 border-white shadow-lg flex flex-wrap items-center justify-between gap-3">
+        <div class="flex items-center gap-3">
+          <span class="text-3xl">🕵️</span>
+          <div>
+            <div class="text-xs font-bold uppercase opacity-90">當前挑戰四葉草板</div>
+            <div class="text-lg md:text-xl font-black">
+              出題者：<span id="activeBoardAuthor" class="underline decoration-2">團友</span>
+              <span id="tryAttemptBadge" class="ml-2 px-3 py-0.5 rounded-full bg-white text-[#EA6A00] text-xs md:text-sm font-black">
+                第 1 次機會 (全中得 6 分)
+              </span>
+            </div>
+          </div>
+        </div>
+
+        <!-- 倒數計時器 -->
+        <div class="flex items-center gap-3">
+          <div class="bg-black/25 px-4 py-1.5 rounded-full font-black text-lg md:text-xl flex items-center gap-2">
+            <span>⏱️</span>
+            <span id="timerDisplay">03:00</span>
+          </div>
+          <button onclick="toggleTimerPause()" class="pill-btn px-3 py-1.5 bg-white text-[#EA6A00] text-xs">
+            ⏯️ 暫停/繼續
+          </button>
+        </div>
+      </div>
+
+      <!-- 主競猜區：左邊四葉草板 + 右邊候選字卡池 -->
+      <div class="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
+
+        <!-- 左側：四葉草主舞台 (Clover Board with 4 Clues & 4 Slots) -->
+        <div class="lg:col-span-7 clover-board p-4 sm:p-7">
+          <!-- 北方提示詞 -->
+          <div class="flex justify-center mb-4">
+            <div class="clue-pill px-6 py-2 text-base md:text-xl flex items-center gap-2">
+              <span class="text-xs font-bold bg-[#F3C242] px-2 py-0.5 rounded-full">⬆️ 北</span>
+              <span id="boardClueN">--</span>
+            </div>
+          </div>
+
+          <!-- 中間：西方提示 + 2x2 插槽 + 東方提示 -->
+          <div class="grid grid-cols-12 gap-2 sm:gap-4 items-center">
+            <!-- 西方提示 -->
+            <div class="col-span-2 flex justify-center">
+              <div class="clue-pill px-2.5 py-4 text-sm md:text-lg flex flex-col items-center gap-1 text-center break-words">
+                <span class="text-[11px] font-bold bg-[#F3C242] px-1.5 py-0.5 rounded-full">⬅️ 西</span>
+                <span id="boardClueW" class="leading-tight">--</span>
+              </div>
+            </div>
+
+            <!-- 2x2 四葉草字卡插槽 -->
+            <div class="col-span-8 grid grid-cols-2 gap-3 sm:gap-4" id="cloverSlotsGrid">
+              <!-- Slot 0 (左上), Slot 1 (右上), Slot 2 (左下), Slot 3 (右下) 由 JS 渲染 -->
+            </div>
+
+            <!-- 東方提示 -->
+            <div class="col-span-2 flex justify-center">
+              <div class="clue-pill px-2.5 py-4 text-sm md:text-lg flex flex-col items-center gap-1 text-center break-words">
+                <span class="text-[11px] font-bold bg-[#F3C242] px-1.5 py-0.5 rounded-full">➡️ 東</span>
+                <span id="boardClueE" class="leading-tight">--</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- 南方提示詞 -->
+          <div class="flex justify-center mt-4">
+            <div class="clue-pill px-6 py-2 text-base md:text-xl flex items-center gap-2">
+              <span class="text-xs font-bold bg-[#F3C242] px-2 py-0.5 rounded-full">⬇️ 南</span>
+              <span id="boardClueS">--</span>
+            </div>
+          </div>
+
+          <p class="text-center text-white/90 text-xs md:text-sm font-bold mt-4">
+            💡 操作方法：先撳右邊候選卡，再撳四葉草空槽放入；撳槽入面張卡嘅 <b>「🔄 轉90°」</b> 即可旋轉方向，撳 <b>「✖ 移出」</b> 放返落卡池！
+          </p>
+        </div>
+
+        <!-- 右側：候選字卡池 (包含干擾卡) & 提交核對按鈕 -->
+        <div class="lg:col-span-5 game-card space-y-4">
+          <div class="flex items-center justify-between border-b-2 border-gray-100 pb-2">
+            <h3 class="text-lg md:text-xl font-black text-[#4A3222]">
+              🃏 候選字卡池（含干擾卡）
+            </h3>
+            <span id="poolCountBadge" class="text-xs font-black px-2.5 py-1 rounded-full bg-blue-100 text-[#0D74B8]">
+              剩餘 5 張
+            </span>
+          </div>
+
+          <!-- 候選字卡 Grid -->
+          <div id="candidatePoolGrid" class="grid grid-cols-2 gap-3">
+            <!-- 由 JS 渲染候選字卡 -->
+          </div>
+
+          <!-- 提交與操作區 -->
+          <div class="pt-3 border-t-2 border-gray-100 space-y-2.5">
+            <button id="btnVerifyGuess" onclick="submitVerification()" class="pill-btn w-full py-3.5 bg-[#E63E7A] text-white text-lg flex items-center justify-center gap-2">
+              <span>✨</span> 鎖定擺位！核對答案
+            </button>
+
+            <!-- 核對結果訊息橫幅 -->
+            <div id="verifyResultBanner" class="hidden p-4 rounded-2xl text-center space-y-2">
+              <div id="verifyResultTitle" class="text-xl font-black"></div>
+              <div id="verifyResultDesc" class="text-sm font-bold"></div>
+              <div class="flex flex-wrap justify-center gap-2 pt-2">
+                <button id="btnNextBoardOrWriting" onclick="goToNextPuzzleOrLobby()" class="pill-btn px-5 py-2 bg-[#4A3222] text-white text-sm">
+                  ⏭️ 下一塊四葉草板 / 返回題目庫
+                </button>
+                <button onclick="showFinalPodium()" class="pill-btn px-5 py-2 bg-[#F3C242] text-[#4A3222] text-sm">
+                  🏆 結束並前往頒獎台
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </section>
+
+    <!-- ==========================================
+         VIEW 4: 榮耀頒獎台 (PODIUM VIEW)
+    =========================================== -->
+    <section id="viewPodium" class="hidden">
+      <div class="bg-[#F3C242] border-4 border-white rounded-3xl p-6 md:p-10 shadow-xl text-center space-y-6">
+        <div class="text-5xl md:text-6xl">🏆🍀🎉</div>
+        <h2 class="text-3xl md:text-4xl font-black text-[#4A3222]">四葉草默契大結算！</h2>
+        <p id="podiumSummaryText" class="text-lg font-bold text-[#4A3222]/90"></p>
+
+        <div id="podiumRankingGrid" class="grid grid-cols-1 sm:grid-cols-3 gap-4 max-w-3xl mx-auto pt-2">
+          <!-- JS 渲染前三名或組別總分 -->
+        </div>
+
+        <div class="pt-4 flex flex-wrap justify-center gap-3">
+          <button onclick="backToLobbyView()" class="pill-btn px-6 py-3 bg-[#E63E7A] text-white text-base">
+            🍀 繼續玩下一局
+          </button>
+          <button onclick="confirmResetGame()" class="pill-btn px-6 py-3 bg-white text-[#4A3222] text-base">
+            🔄 清空分數重新開始
+          </button>
+        </div>
+      </div>
+    </section>
+
+    <!-- ==========================================
+         🛠️ 主持控制列 (Host God-Mode Controls)
+    =========================================== -->
+    <section id="hostTools" class="bg-white/90 backdrop-blur rounded-3xl p-4 border-4 border-white shadow-md">
+      <div class="flex flex-wrap items-center justify-between gap-2">
+        <button onclick="toggleHostDrawer()" class="font-black text-sm md:text-base text-[#4A3222] flex items-center gap-2">
+          <span>🛠️ 主持後台控制 (God-Mode)</span>
+          <span id="hostDrawerArrow" class="text-xs bg-gray-200 px-2 py-0.5 rounded-full">展開 ▼</span>
+        </button>
+      </div>
+
+      <div id="hostDrawerContent" class="hidden mt-4 pt-4 border-t-2 border-dashed border-gray-200 space-y-4">
+        <div class="flex flex-wrap gap-2">
+          <button onclick="hostPeekSolution()" class="pill-btn px-4 py-2 bg-[#0D74B8] text-white text-xs md:text-sm">
+            👁️ 主持偷睇/自動還原正確答案
+          </button>
+          <button onclick="startBuiltinPresetPuzzle()" class="pill-btn px-4 py-2 bg-[#5CB346] text-white text-xs md:text-sm">
+            🎲 即時抽一題精選題目上大螢幕
+          </button>
+          <button onclick="addNewTeamPrompt()" class="pill-btn px-4 py-2 bg-[#F3C242] text-[#4A3222] text-xs md:text-sm">
+            ➕ 新增計分組別/團友
+          </button>
+          <button onclick="showFinalPodium()" class="pill-btn px-4 py-2 bg-[#E63E7A] text-white text-xs md:text-sm">
+            🏆 跳去最終頒獎台
+          </button>
+        </div>
+
+        <!-- 組別手動加減分控制 -->
+        <div id="hostScoreAdjustList" class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-2">
+          <!-- JS 動態渲染手動加減分按鈕 -->
+        </div>
+      </div>
+    </section>
+
+  </main>
+
+  <!-- 頁尾 Footer -->
+  <footer class="w-full bg-[#916E57] text-white py-4 px-4 mt-8 border-t-4 border-white/40">
+    <div class="max-w-7xl mx-auto flex flex-wrap items-center justify-between gap-2 text-xs md:text-sm font-bold">
+      <div>🍀 四葉草神聯想 So Clover! — 團契破冰電子化網頁遊戲</div>
+      <div>支援手機 QR Code 即時入房出題・全場大螢幕互動競猜</div>
+    </div>
+  </footer>
+
+  <!-- ==========================================
+       MODAL 1: 📱 QR Code 掃碼入房視窗
+  =========================================== -->
+  <div id="modalQR" class="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
+    <div class="game-card max-w-md w-full text-center space-y-4 relative">
+      <button onclick="closeQRModal()" class="absolute top-4 right-4 w-9 h-9 rounded-full bg-gray-100 font-black text-gray-600">✕</button>
+      <div class="text-3xl">📱</div>
+      <h3 class="text-2xl font-black text-[#4A3222]">掃描 QR Code 加入房間</h3>
+      <p class="text-sm font-bold text-gray-600">團友請用手機相機掃描，即可喺手機收到四葉草板並輸入提示詞！</p>
+      <div class="bg-white p-4 rounded-2xl border-4 border-[#F3C242] inline-block mx-auto">
+        <img id="qrCodeImg" src="" alt="Room QR Code" class="w-56 h-56 mx-auto" />
+      </div>
+      <div class="bg-gray-100 p-2.5 rounded-xl text-xs font-mono break-all" id="qrUrlText"></div>
+      <button onclick="copyShareUrl()" class="pill-btn w-full py-2.5 bg-[#0D74B8] text-white text-sm">
+        📋 複製遊戲連結
+      </button>
+    </div>
+  </div>
+
+  <!-- ==========================================
+       MODAL 2: 📖 遊戲規則視窗
+  =========================================== -->
+  <div id="modalRules" class="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
+    <div class="game-card max-w-2xl w-full space-y-4 max-h-[85vh] overflow-y-auto relative">
+      <button onclick="closeRulesModal()" class="absolute top-4 right-4 w-9 h-9 rounded-full bg-gray-100 font-black text-gray-600">✕</button>
+      <h3 class="text-2xl font-black text-[#4A3222] flex items-center gap-2">📖 《四葉草神聯想 So Clover!》破冰規則</h3>
+      <div class="space-y-3 text-sm md:text-base leading-relaxed font-medium text-[#4A3222]">
+        <div class="p-3.5 rounded-2xl bg-[#FFF9E6] border-2 border-[#F3C242]">
+          <b>1. 秘密寫提示詞（出題階段）：</b><br>
+          系統會喺四葉草板上面擺放 4 張正方形字卡（每張卡四邊都有 1 個詞語）。每塊葉片位都會對應相鄰兩張卡嘅 **2 個詞語**。出題者要喺北、東、南、西 4 塊葉片各寫 **1 個聯想提示詞**，令大家一睇個提示就聯想到嗰兩個詞！
+        </div>
+        <div class="p-3.5 rounded-2xl bg-blue-50 border-2 border-[#1EA1E8]">
+          <b>2. 亂入干擾卡（洗牌階段）：</b><br>
+          出題完成後，系統會將原本 4 張字卡拆落嚟，再偷偷塞入 **1 張（或 2 張）從未出現過嘅干擾字卡**，全部打亂並隨機旋轉方向！
+        </div>
+        <div class="p-3.5 rounded-2xl bg-green-50 border-2 border-[#5CB346]">
+          <b>3. 全場推理與兩次機會（競猜計分）：</b><br>
+          全場團友一齊傾，揀出正確嘅 4 張卡放入四葉草槽位，並用 `🔄 轉90°` 調校去正確方向：<br>
+          ・<b>第 1 次機會核對全中：</b>直接獲得滿分 <b>6 分</b>！<br>
+          ・<b>如果有錯：</b>擺啱方向同位置嘅卡會自動鎖定 ✅，擺錯嘅卡會彈返出嚟進行 **第 2 次機會**。第 2 次核對每擺啱 1 張卡得 <b>1 分</b>！
+        </div>
+      </div>
+      <button onclick="closeRulesModal()" class="pill-btn w-full py-3 bg-[#E63E7A] text-white text-base">明白晒！開波！</button>
+    </div>
+  </div>
+
+  <!-- ==========================================
+       MODAL 3: ⚙️ 設定、Worker 端點與題庫編輯器
+  =========================================== -->
+  <div id="modalSettings" class="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
+    <div class="game-card max-w-3xl w-full space-y-4 max-h-[90vh] overflow-y-auto relative">
+      <button onclick="closeSettingsModal()" class="absolute top-4 right-4 w-9 h-9 rounded-full bg-gray-100 font-black text-gray-600">✕</button>
+      <h3 class="text-2xl font-black text-[#4A3222]">⚙️ 連線設定 & 四詞卡題庫編輯器</h3>
+
+      <!-- Cloudflare Worker Endpoint 設定 -->
+      <div class="p-4 rounded-2xl bg-blue-50 border-2 border-[#1EA1E8] space-y-2">
+        <label class="block text-sm font-black text-[#0D74B8]">☁️ Cloudflare Worker 同步伺服器網址 (Mode C WebSocket Endpoint)</label>
+        <input id="inputWorkerUrl" type="text" placeholder="wss://so-clover.ymtwill.workers.dev"
+          class="w-full px-3 py-2 rounded-xl border-2 border-blue-300 font-mono text-sm" />
+        <p class="text-xs text-gray-600">
+          預設連接 <code>wss://so-clover.ymtwill.workers.dev</code>（或自動偵測同網域 Worker）。修改後撳下方儲存即可生效。
+        </p>
+      </div>
+
+      <!-- 題庫 JSON 編輯與匯入匯出 -->
+      <div class="space-y-2">
+        <div class="flex flex-wrap items-center justify-between gap-2">
+          <label class="text-sm font-black">📚 四詞正方形字卡庫（每行 1 張卡，用逗號分隔北、東、南、西 4 個詞語）</label>
+          <span id="deckCountLabel" class="text-xs font-black px-2.5 py-1 bg-green-100 text-green-800 rounded-full">共 40 張卡</span>
+        </div>
+        <textarea id="textareaWordDeck" rows="8"
+          class="w-full p-3 rounded-xl border-2 border-gray-300 font-mono text-xs md:text-sm focus:outline-none focus:border-[#E63E7A]"></textarea>
+        <div class="flex flex-wrap gap-2">
+          <button onclick="saveSettingsAndDeck()" class="pill-btn px-5 py-2 bg-[#5CB346] text-white text-sm">💾 儲存題庫與設定</button>
+          <button onclick="resetDefaultDeck()" class="pill-btn px-4 py-2 bg-gray-200 text-[#4A3222] text-sm">🔄 還原預設地道題庫</button>
+          <button onclick="exportDeckJson()" class="pill-btn px-4 py-2 bg-[#0D74B8] text-white text-sm">⬇️ 匯出題庫 JSON</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    /*************************************************************************
+     * 1. 預設香港地道＋跨團契通用四詞字卡庫 (零特定團契名稱硬編碼)
+     *************************************************************************/
+    const DEFAULT_WORD_CARDS = [
+      ["茶餐廳", "遲到", "露營", "打邊爐"],
+      ["聖經", "詩歌", "祈禱", "奉獻"],
+      ["返工", "放假", "減肥", "宵夜"],
+      ["波蘿油", "凍檸茶", "燒賣", "雞蛋仔"],
+      ["地鐵", "巴士", "塞車", "鬧鐘"],
+      ["旅行", "執行李", "護照", "買手信"],
+      ["火鍋", "燒肉", "自助餐", "甜品"],
+      ["唱K", "睇戲", "桌遊", "行山"],
+      ["感冒", "睇醫生", "食藥", "瞓覺"],
+      ["冷氣機", "打風", "落雨", "遮"],
+      ["結婚", "禮物", "生日", "蛋糕"],
+      ["小學", "考試", "暑期作業", "測驗"],
+      ["咖啡", "捱夜", "加班", "人工"],
+      ["貓", "狗", "金魚", "倉鼠"],
+      ["足球", "籃球", "羽毛球", "游水"],
+      ["結他", "鋼琴", "打鼓", "唱歌"],
+      ["日本", "台灣", "泰國", "英國"],
+      ["超市", "街市", "煮飯", "洗碗"],
+      ["手機", "叉電線", "WiFi", "耳機"],
+      ["雪糕", "朱古力", "薯片", "可樂"],
+      ["聖誕節", "復活節", "中秋節", "農曆新年"],
+      ["利是", "團年飯", "放煙花", "花市"],
+      ["沙灘", "太陽眼鏡", "防曬", "泳衣"],
+      ["圖書館", "溫書", "眼鏡", "筆記"],
+      ["秘密", "驚喜", "整蠱", "大笑"],
+      ["發夢", "賴床", "眼瞓", "枕頭"],
+      ["減價", "網購", "信用卡", "速遞"],
+      ["影相", "打卡", "修圖", "限時動態"],
+      ["搬屋", "執屋", "吸塵機", "垃圾桶"],
+      ["方舟", "彩虹", "和平鴿", "大洪水"],
+      ["牧羊人", "迷路", "星星", "沙漠"],
+      ["播種", "收成", "果實", "陽光"],
+      ["燈塔", "暴風雨", "帆船", "指南針"],
+      ["皇冠", "寶藏", "地圖", "鎖匙"],
+      ["超人", "魔法", "時光機", "隱形"],
+      ["偵探", "放大鏡", "腳印", "密碼"],
+      ["太空人", "月球", "火箭", "外星人"],
+      ["恐龍", "博物館", "化石", "火山"],
+      ["廚師", "食譜", "平底鍋", "圍裙"],
+      ["鬧市", "森林", "星空", "篝火"]
+    ];
+
+    // 內置精選題目（供單機免出題直接全場競猜）
+    const BUILTIN_PRESET_PUZZLES = [
+      {
+        author: "精選題目 #1（地道飲食篇）",
+        clues: { N: "下午茶", E: "冬天最愛", S: "罪惡感", W: "趕時間" },
+        solution: [
+          { words: ["茶餐廳", "遲到", "露營", "打邊爐"], rot: 0 },     // N:茶餐廳 E:遲到 S:露營 W:打邊爐
+          { words: ["波蘿油", "凍檸茶", "燒賣", "雞蛋仔"], rot: 0 },   // N:波蘿油 E:凍檸茶 S:燒賣 W:雞蛋仔
+          { words: ["地鐵", "巴士", "塞車", "鬧鐘"], rot: 3 },         // 轉270度 -> N:巴士 E:塞車 S:鬧鐘 W:地鐵
+          { words: ["返工", "放假", "減肥", "宵夜"], rot: 1 }          // 轉90度  -> N:宵夜 E:返工 S:放假 W:減肥
+        ],
+        // 修正對齊四邊提示詞嘅精準題目：
+        customExact: true
+      }
+    ];
+
+    /*************************************************************************
+     * 2. Web Audio API 合成音效引擎 (零外部 MP3 依賴)
+     *************************************************************************/
+    const SoundFX = {
+      ctx: null,
+      init() {
+        if (!this.ctx) {
+          const AudioCtx = window.AudioContext || window.webkitAudioContext;
+          if (AudioCtx) this.ctx = new AudioCtx();
+        }
+      },
+      playTone(freq, type = 'sine', duration = 0.15, vol = 0.15) {
+        try {
+          this.init();
+          if (!this.ctx) return;
+          const osc = this.ctx.createOscillator();
+          const gain = this.ctx.createGain();
+          osc.type = type;
+          osc.frequency.setValueAtTime(freq, this.ctx.currentTime);
+          gain.gain.setValueAtTime(vol, this.ctx.currentTime);
+          gain.gain.exponentialRampToValueAtTime(0.001, this.ctx.currentTime + duration);
+          osc.connect(gain);
+          gain.connect(this.ctx.destination);
+          osc.start();
+          osc.stop(this.ctx.currentTime + duration);
+        } catch (e) {}
+      },
+      click() { this.playTone(520, 'triangle', 0.08, 0.12); },
+      rotate() { this.playTone(680, 'sine', 0.1, 0.12); },
+      success() {
+        [523.25, 659.25, 783.99, 1046.5].forEach((f, idx) => {
+          setTimeout(() => this.playTone(f, 'triangle', 0.22, 0.18), idx * 90);
+        });
+      },
+      wrong() {
+        [300, 240].forEach((f, idx) => {
+          setTimeout(() => this.playTone(f, 'sawtooth', 0.22, 0.15), idx * 140);
+        });
+      }
+    };
+
+    /*************************************************************************
+     * 3. 遊戲全域狀態與 LocalStorage 持久化
+     *************************************************************************/
+    const STORAGE_KEY = "SO_CLOVER_STATE_V1";
+
+    let state = {
+      roomId: "8888",
+      playerName: "",
+      role: "host", // 'host' | 'player'
+      workerUrl: "wss://so-clover.ymtwill.workers.dev",
+      decoyCount: 1,
+      timerSeconds: 180,
+      coopTotalScore: 0,
+      teams: [
+        { id: "t1", name: "第 1 組", score: 0 },
+        { id: "t2", name: "第 2 組", score: 0 },
+        { id: "t3", name: "第 3 組", score: 0 }
+      ],
+      wordDeck: [...DEFAULT_WORD_CARDS],
+      submittedBoards: [], // { id, author, clues: {N,E,S,W}, solutionCards: [{words, rot}], solved: false }
+      myWritingCards: [],  // [{ words: [N,E,S,W], rot: 0 }]
+      activePuzzle: null,  // 當前大螢幕競猜緊嘅題目狀態
+      selectedPoolIndex: null
+    };
+
+    let ws = null;
+    let timerInterval = null;
+    let timeRemaining = 180;
+    let timerPaused = false;
+    let resetting = false;
+
+    function saveState() {
+      if (resetting) return;
+      try {
+        localStorage.setItem(STORAGE_KEY, JSON.stringify({
+          roomId: state.roomId,
+          playerName: state.playerName,
+          workerUrl: state.workerUrl,
+          decoyCount: state.decoyCount,
+          timerSeconds: state.timerSeconds,
+          coopTotalScore: state.coopTotalScore,
+          teams: state.teams,
+          wordDeck: state.wordDeck,
+          submittedBoards: state.submittedBoards,
+          activePuzzle: state.activePuzzle
+        }));
+      } catch (e) {}
+    }
+
+    function loadState() {
+      try {
+        const raw = localStorage.getItem(STORAGE_KEY);
+        if (raw) {
+          const parsed = JSON.parse(raw);
+          state = { ...state, ...parsed };
+        }
+      } catch (e) {}
+    }
+
+    /*************************************************************************
+     * 4. 工具函數：字卡方向計算
+     * 每張卡 `words` 陣列為 [北0, 東1, 南2, 西3]
+     * 當順時針旋轉 `rot` (0, 1, 2, 3) 次 90° 後：
+     * 朝向 dir (0=北, 1=東, 2=南, 3=西) 嘅詞語 index = (dir - rot + 4) % 4
+     *************************************************************************/
+    function getWordAtDirection(card, dirIndex) {
+      const r = ((card.rot % 4) + 4) % 4;
+      const idx = (dirIndex - r + 4) % 4;
+      return card.words[idx];
+    }
+
+    function drawRandomCards(count, excludeWordsSet = new Set()) {
+      const available = state.wordDeck.filter(w => !excludeWordsSet.has(w.join(",")));
+      const shuffled = [...(available.length >= count ? available : state.wordDeck)]
+        .sort(() => Math.random() - 0.5);
+      return shuffled.slice(0, count).map(words => ({
+        words: [...words],
+        rot: Math.floor(Math.random() * 4)
+      }));
+    }
+
+    /*************************************************************************
+     * 5. WebSocket 多機連線同步 (Cloudflare Worker + Durable Objects)
+     *************************************************************************/
+    function connectWebSocket(roomId, playerName, role) {
+      if (ws) {
+        try { ws.close(); } catch (e) {}
+      }
+      const base = (state.workerUrl || "").trim().replace(/\/$/, "");
+      if (!base) {
+        updateConnBadge("單機模式", "bg-yellow-500");
+        return;
+      }
+
+      const wsUrl = `${base}/ws?room=${encodeURIComponent(roomId)}&name=${encodeURIComponent(playerName)}&role=${encodeURIComponent(role)}`;
+      updateConnBadge(`連線中 (${roomId})...`, "bg-yellow-500");
+
+      try {
+        ws = new WebSocket(wsUrl);
+        ws.onopen = () => {
+          updateConnBadge(`已連房 #${roomId}`, "bg-[#5CB346]");
+          wsSend({ type: "JOIN", roomId, name: playerName, role });
+        };
+        ws.onmessage = (event) => {
+          try {
+            const msg = JSON.parse(event.data);
+            handleServerMessage(msg);
+          } catch (e) {}
+        };
+        ws.onerror = () => {
+          updateConnBadge(`本機模式 (#${roomId})`, "bg-[#0D74B8]");
+        };
+        ws.onclose = () => {
+          updateConnBadge(`本機/離線 (#${roomId})`, "bg-[#0D74B8]");
+        };
+      } catch (e) {
+        updateConnBadge(`本機模式 (#${roomId})`, "bg-[#0D74B8]");
+      }
+    }
+
+    function wsSend(payload) {
+      if (ws && ws.readyState === WebSocket.OPEN) {
+        ws.send(JSON.stringify(payload));
+      }
+    }
+
+    function updateConnBadge(text, dotColorClass) {
+      document.getElementById("connText").textContent = text;
+      const badge = document.getElementById("connStatusBadge");
+      if (badge) {
+        badge.className = "px-3 py-1.5 rounded-full text-xs md:text-sm font-black text-white flex items-center gap-1.5 " + (dotColorClass || "bg-[#1EA1E8]");
+      }
+    }
+
+    function defaultWorkerUrl() {
+      if (location.hostname) {
+        const wsProto = location.protocol === "https:" ? "wss:" : "ws:";
+        return `${wsProto}//${location.host}`;
+      }
+      return "wss://so-clover.ymtwill.workers.dev";
+    }
+
+    function syncRoleChrome() {
+      const tools = document.getElementById("hostTools");
+      if (tools) tools.classList.toggle("hidden", state.role === "player");
+    }
+
+    function handleServerMessage(msg) {
+      if (resetting) return;
+      if (msg.type === "ROOM_STATE") {
+        renderLobbyPlayers(msg.players || []);
+        if (Array.isArray(msg.submittedBoards)) {
+          state.submittedBoards = msg.submittedBoards;
+          renderSubmittedBoardsList();
+        }
+        if (Array.isArray(msg.teams) && msg.teams.length > 0) {
+          state.teams = msg.teams;
+          renderScoreboard();
+        }
+      } else if (msg.type === "DISPATCH_BOARDS") {
+        SoundFX.click();
+        const writingOpen = !document.getElementById("viewWriting").classList.contains("hidden");
+        const alreadyDealt = state.myWritingCards && state.myWritingCards.length === 4;
+        if (!(writingOpen && alreadyDealt)) initWritingBoard();
+        switchView("viewWriting");
+      } else if (msg.type === "NEW_BOARD_SUBMITTED") {
+        const exists = state.submittedBoards.some(b => b.id === msg.board.id);
+        if (!exists) {
+          state.submittedBoards.push(msg.board);
+          saveState();
+          renderSubmittedBoardsList();
+          SoundFX.click();
+        }
+      } else if (msg.type === "ACTIVE_PUZZLE_SYNC") {
+        if (state.role !== "host") return;
+        state.activePuzzle = msg.activePuzzle;
+        saveState();
+        if (state.activePuzzle) {
+          switchView("viewGuessing");
+          if (!state.activePuzzle.finished && !timerInterval) {
+            document.getElementById("verifyResultBanner").classList.add("hidden");
+            document.getElementById("btnVerifyGuess").classList.remove("hidden");
+            startGuessTimer(state.timerSeconds);
+          }
+          renderGuessingStage();
+        }
+      }
+    }
+
+    function renderLobbyPlayers(players) {
+      const container = document.getElementById("lobbyPlayersList");
+      document.getElementById("lobbyPlayerCount").textContent = players.length;
+      if (!players.length) {
+        container.innerHTML = `<div class="col-span-full text-center text-gray-400 text-sm py-4">暫時未有其他裝置連入，可掃描右上角 QR Code 或直接開局</div>`;
+        return;
+      }
+      container.innerHTML = players.map(p => `
+        <div class="bg-white border-2 border-[#1EA1E8] rounded-xl px-3 py-2 flex items-center justify-between">
+          <span class="font-black text-sm truncate">${escapeHtml(p.name)}</span>
+          <span class="text-[11px] font-bold px-2 py-0.5 rounded-full ${p.submitted ? 'bg-green-100 text-green-700' : 'bg-yellow-100 text-yellow-800'}">
+            ${p.submitted ? '✅ 已交題' : (p.role === 'host' ? '🖥️ 主持' : '✍️ 準備中')}
+          </span>
+        </div>
+      `).join("");
+    }
+
+    /*************************************************************************
+     * 6. 視圖切換與出題流程 (WRITING PHASE)
+     *************************************************************************/
+    function switchView(viewId) {
+      ["viewLobby", "viewWriting", "viewGuessing", "viewPodium"].forEach(id => {
+        document.getElementById(id).classList.toggle("hidden", id !== viewId);
+      });
+      const titles = {
+        viewLobby: "準備開始・建立或加入房間",
+        viewWriting: "秘密出題階段・寫低 4 個雙詞聯想提示",
+        viewGuessing: "全場大螢幕競猜・旋轉並還原四葉草字卡",
+        viewPodium: "榮耀頒獎台・默契總結算"
+      };
+      document.getElementById("phaseTitleText").textContent = titles[viewId] || "";
+    }
+
+    function generateRandomRoomId() {
+      const pin = String(Math.floor(1000 + Math.random() * 9000));
+      document.getElementById("inputRoomId").value = pin;
+      state.roomId = pin;
+      saveState();
+    }
+
+    function joinAsHost() {
+      SoundFX.click();
+      const pin = (document.getElementById("inputRoomId").value || "8888").trim();
+      const name = (document.getElementById("inputPlayerName").value || "主持大螢幕").trim();
+      state.roomId = pin;
+      state.playerName = name;
+      state.role = "host";
+      saveState();
+      connectWebSocket(pin, name, "host");
+      syncRoleChrome();
+      renderSubmittedBoardsList();
+    }
+
+    function joinAsPlayer() {
+      SoundFX.click();
+      const pin = (document.getElementById("inputRoomId").value || "8888").trim();
+      const name = (document.getElementById("inputPlayerName").value || "團友" + Math.floor(Math.random()*90+10)).trim();
+      state.roomId = pin;
+      state.playerName = name;
+      state.role = "player";
+      saveState();
+      connectWebSocket(pin, name, "player");
+      syncRoleChrome();
+      initWritingBoard();
+      switchView("viewWriting");
+    }
+
+    function sendDrawBoardsCommand() {
+      SoundFX.click();
+      wsSend({ type: "DISPATCH_BOARDS" });
+      initWritingBoard();
+      switchView("viewWriting");
+    }
+
+    function startLocalClueWriting() {
+      SoundFX.click();
+      if (!state.playerName) {
+        state.playerName = document.getElementById("inputPlayerName").value.trim() || "出題代表";
+      }
+      initWritingBoard();
+      switchView("viewWriting");
+    }
+
+    function initWritingBoard() {
+      state.myWritingCards = drawRandomCards(4);
+      ["clueInputN", "clueInputE", "clueInputS", "clueInputW"].forEach(id => {
+        document.getElementById(id).value = "";
+      });
+      renderWritingPreview();
+      renderSubmittedBoardsList();
+    }
+
+    function rerollMyWritingBoard() {
+      SoundFX.rotate();
+      initWritingBoard();
+    }
+
+    function renderWritingPreview() {
+      const cards = state.myWritingCards;
+      if (!cards || cards.length < 4) return;
+
+      // 計算四邊相鄰詞語對：
+      // Card 0 (左上), Card 1 (右上), Card 2 (左下), Card 3 (右下)
+      // 北方 = Card 0 北(0) + Card 1 北(0)
+      // 東方 = Card 1 東(1) + Card 3 東(1)
+      // 南方 = Card 2 南(2) + Card 3 南(2)
+      // 西方 = Card 0 西(3) + Card 2 西(3)
+      const pairN = `${getWordAtDirection(cards[0], 0)} ＋ ${getWordAtDirection(cards[1], 0)}`;
+      const pairE = `${getWordAtDirection(cards[1], 1)} ＋ ${getWordAtDirection(cards[3], 1)}`;
+      const pairS = `${getWordAtDirection(cards[2], 2)} ＋ ${getWordAtDirection(cards[3], 2)}`;
+      const pairW = `${getWordAtDirection(cards[0], 3)} ＋ ${getWordAtDirection(cards[2], 3)}`;
+
+      document.getElementById("writePairNorth").textContent = pairN;
+      document.getElementById("writePairEast").textContent = pairE;
+      document.getElementById("writePairSouth").textContent = pairS;
+      document.getElementById("writePairWest").textContent = pairW;
+
+      document.getElementById("lblPairN").textContent = pairN;
+      document.getElementById("lblPairE").textContent = pairE;
+      document.getElementById("lblPairS").textContent = pairS;
+      document.getElementById("lblPairW").textContent = pairW;
+
+      const grid = document.getElementById("writingPreviewGrid");
+      grid.innerHTML = cards.map((c, idx) => renderSquareCardHtml(c, { showRotateBtn: false, badgeText: `位置 ${idx+1}` })).join("");
+    }
+
+    function submitMyClues() {
+      const N = document.getElementById("clueInputN").value.trim();
+      const E = document.getElementById("clueInputE").value.trim();
+      const S = document.getElementById("clueInputS").value.trim();
+      const W = document.getElementById("clueInputW").value.trim();
+
+      if (!N || !E || !S || !W) {
+        alert("請填齊北、東、南、西 4 個葉片嘅聯想提示詞！");
+        return;
+      }
+
+      // 檢查有無直接用咗字卡上面嘅字
+      const cards = state.myWritingCards;
+      const forbiddenWords = [
+        getWordAtDirection(cards[0], 0), getWordAtDirection(cards[1], 0),
+        getWordAtDirection(cards[1], 1), getWordAtDirection(cards[3], 1),
+        getWordAtDirection(cards[2], 2), getWordAtDirection(cards[3], 2),
+        getWordAtDirection(cards[0], 3), getWordAtDirection(cards[2], 3)
+      ];
+      for (const clue of [N, E, S, W]) {
+        if (forbiddenWords.some(fw => fw.includes(clue) || clue.includes(fw))) {
+          if (!confirm(`提示詞「${clue}」似乎包含咗題目字卡本身嘅字喎！確定照樣提交嗎？`)) {
+            return;
+          }
+          break;
+        }
+      }
+
+      const boardObj = {
+        id: "b_" + Date.now() + "_" + Math.floor(Math.random() * 1000),
+        author: state.playerName || document.getElementById("inputPlayerName").value.trim() || "神秘團友",
+        clues: { N, E, S, W },
+        solutionCards: JSON.parse(JSON.stringify(state.myWritingCards)),
+        solved: false
+      };
+
+      state.submittedBoards.push(boardObj);
+      saveState();
+      wsSend({ type: "SUBMIT_BOARD", board: boardObj });
+      SoundFX.success();
+      renderSubmittedBoardsList();
+
+      // 如果係單機出題，直接詢問係咪即刻放上大螢幕競猜
+      if (!ws || ws.readyState !== WebSocket.OPEN) {
+        launchBoardForGuessing(boardObj.id);
+      } else {
+        alert("✅ 已成功提交你嘅四葉草板到主持大螢幕！你可以喺下方撳入題目開始全場競猜。");
+      }
+    }
+
+    function renderSubmittedBoardsList() {
+      const list = document.getElementById("submittedBoardsList");
+      if (!state.submittedBoards.length) {
+        list.innerHTML = `<div class="col-span-full text-center text-gray-400 text-sm py-3">暫時未有已提交嘅四葉草題目</div>`;
+        return;
+      }
+      list.innerHTML = state.submittedBoards.map((b, i) => `
+        <div class="p-3 rounded-2xl border-2 ${b.solved ? 'border-green-400 bg-green-50' : 'border-[#F3C242] bg-[#FFF9E6]'} flex flex-col justify-between gap-2">
+          <div>
+            <div class="flex items-center justify-between">
+              <span class="font-black text-sm text-[#4A3222]">🍀 ${escapeHtml(b.author)}</span>
+              <span class="text-xs font-bold px-2 py-0.5 rounded-full ${b.solved ? 'bg-green-200 text-green-800' : 'bg-pink-100 text-[#E63E7A]'}">
+                ${b.solved ? '✅ 已完成' : '🔥 待挑戰'}
+              </span>
+            </div>
+            <div class="text-xs text-gray-600 mt-1">
+              提示：${escapeHtml(b.clues.N)} / ${escapeHtml(b.clues.E)} / ${escapeHtml(b.clues.S)} / ${escapeHtml(b.clues.W)}
+            </div>
+          </div>
+          ${state.role === "host" ? `<button onclick="launchBoardForGuessing('${b.id}')" class="pill-btn w-full py-1.5 bg-[#E63E7A] text-white text-xs">🖥️ 放上大螢幕全場估</button>` : `<div class="text-center text-[11px] font-bold text-[#5CB346]">已交到主持大螢幕</div>`}
+        </div>
+      `).join("");
+    }
+
+    /*************************************************************************
+     * 7. 全場競猜與旋轉擺位邏輯 (GUESSING PHASE)
+     *************************************************************************/
+    function startBuiltinPresetPuzzle() {
+      SoundFX.click();
+      // 動態生成一組精選合理提示或隨機挑戰板
+      const cards = [
+        { words: ["茶餐廳", "遲到", "露營", "打邊爐"], rot: 0 },
+        { words: ["波蘿油", "凍檸茶", "燒賣", "雞蛋仔"], rot: 0 },
+        { words: ["地鐵", "巴士", "塞車", "鬧鐘"], rot: 1 },
+        { words: ["返工", "放假", "減肥", "宵夜"], rot: 2 }
+      ];
+      // 根據上面 4 張卡：
+      // Slot 0 (左上): N=茶餐廳, E=遲到, S=露營, W=打邊爐
+      // Slot 1 (右上): N=波蘿油, E=凍檸茶, S=燒賣, W=雞蛋仔
+      // Slot 2 (左下, rot=1): N=鬧鐘, E=地鐵, S=巴士, W=塞車
+      // Slot 3 (右下, rot=2): N=減肥, E=宵夜, S=返工, W=放假
+      // 北方組合：茶餐廳 + 波蘿油 -> 提示：「下午茶」
+      // 東方組合：凍檸茶 + 宵夜 -> 提示：「茶記夜繽紛」
+      // 南方組合：巴士 + 返工 -> 提示：「朝早趕時間」
+      // 西方組合：打邊爐 + 塞車 -> 提示：「越等越滾」
+      const presetBoard = {
+        id: "preset_" + Date.now(),
+        author: "精選題目（地道生活篇）",
+        clues: { N: "三點三下午茶", E: "凍飲配邪惡野", S: "朝早八點半", W: "等到一肚火" },
+        solutionCards: cards,
+        solved: false
+      };
+      state.submittedBoards.push(presetBoard);
+      launchBoardForGuessing(presetBoard.id);
+    }
+
+    function launchBoardForGuessing(boardId) {
+      const board = state.submittedBoards.find(b => b.id === boardId);
+      if (!board) return;
+
+      // 準備原本 4 張卡 + N 張干擾卡
+      const usedSet = new Set(board.solutionCards.map(c => c.words.join(",")));
+      const decoys = drawRandomCards(Number(state.decoyCount) || 1, usedSet);
+
+      const allPoolCards = [
+        ...board.solutionCards.map(c => ({
+          words: [...c.words],
+          rot: Math.floor(Math.random() * 4)
+        })),
+        ...decoys.map(c => ({
+          words: [...c.words],
+          rot: Math.floor(Math.random() * 4)
+        }))
+      ].sort(() => Math.random() - 0.5);
+
+      state.activePuzzle = {
+        boardId: board.id,
+        author: board.author,
+        clues: { ...board.clues },
+        solutionCards: JSON.parse(JSON.stringify(board.solutionCards)),
+        slots: [null, null, null, null], // 4 個四葉草槽位
+        lockedSlots: [false, false, false, false], // 第 1 次估中後鎖定嘅槽位
+        pool: allPoolCards,
+        attempt: 1, // 1 or 2
+        finished: false
+      };
+      state.selectedPoolIndex = null;
+      saveState();
+
+      wsSend({ type: "ACTIVE_PUZZLE_SYNC", activePuzzle: state.activePuzzle });
+
+      switchView("viewGuessing");
+      document.getElementById("verifyResultBanner").classList.add("hidden");
+      document.getElementById("btnVerifyGuess").classList.remove("hidden");
+      startGuessTimer(state.timerSeconds);
+      renderGuessingStage();
+    }
+
+    function renderGuessingStage() {
+      const p = state.activePuzzle;
+      if (!p) return;
+
+      document.getElementById("activeBoardAuthor").textContent = p.author;
+      const tryBadge = document.getElementById("tryAttemptBadge");
+      if (p.finished) {
+        tryBadge.textContent = "✅ 本局已完成核對";
+      } else if (p.attempt === 1) {
+        tryBadge.textContent = "第 1 次機會 (全中得 6 分)";
+      } else {
+        tryBadge.textContent = "第 2 次機會 (每中 1 張得 1 分)";
+      }
+
+      document.getElementById("boardClueN").textContent = p.clues.N;
+      document.getElementById("boardClueE").textContent = p.clues.E;
+      document.getElementById("boardClueS").textContent = p.clues.S;
+      document.getElementById("boardClueW").textContent = p.clues.W;
+
+      // 渲染 4 個四葉草插槽
+      const slotsGrid = document.getElementById("cloverSlotsGrid");
+      const slotLabels = ["左上槽 (北+西)", "右上槽 (北+東)", "左下槽 (南+西)", "右下槽 (南+東)"];
+      slotsGrid.innerHTML = p.slots.map((card, slotIdx) => {
+        const isLocked = p.lockedSlots[slotIdx];
+        if (!card) {
+          const highlight = state.selectedPoolIndex !== null ? "highlight-slot" : "";
+          return `
+            <div onclick="handleSlotClick(${slotIdx})"
+              class="slot-box ${highlight} flex flex-col items-center justify-center p-2 cursor-pointer text-white text-center">
+              <span class="text-2xl mb-1">➕</span>
+              <span class="text-xs font-black">${slotLabels[slotIdx]}</span>
+              <span class="text-[11px] opacity-80">點擊放入字卡</span>
+            </div>
+          `;
+        } else {
+          return renderSquareCardHtml(card, {
+            isLocked,
+            inSlotIdx: slotIdx,
+            showRotateBtn: !isLocked && !p.finished,
+            showRemoveBtn: !isLocked && !p.finished
+          });
+        }
+      }).join("");
+
+      // 渲染右邊候選字卡池
+      const poolGrid = document.getElementById("candidatePoolGrid");
+      document.getElementById("poolCountBadge").textContent = `候選池 ${p.pool.length} 張`;
+      poolGrid.innerHTML = p.pool.map((card, poolIdx) => {
+        const isSelected = state.selectedPoolIndex === poolIdx;
+        return renderSquareCardHtml(card, {
+          inPoolIdx: poolIdx,
+          isSelected,
+          showRotateBtn: !p.finished
+        });
+      }).join("");
+    }
+
+    // 渲染單張四詞正方形卡 HTML
+    function renderSquareCardHtml(card, opts = {}) {
+      const wN = escapeHtml(getWordAtDirection(card, 0));
+      const wE = escapeHtml(getWordAtDirection(card, 1));
+      const wS = escapeHtml(getWordAtDirection(card, 2));
+      const wW = escapeHtml(getWordAtDirection(card, 3));
+
+      const lockedClass = opts.isLocked ? "locked-correct" : "";
+      const selectedClass = opts.isSelected ? "selected-card" : "";
+      const clickHandler = opts.inPoolIdx !== undefined
+        ? `onclick="selectPoolCard(${opts.inPoolIdx})"`
+        : (opts.inSlotIdx !== undefined && !opts.isLocked ? `onclick="handleSlotClick(${opts.inSlotIdx})"` : "");
+
+      return `
+        <div ${clickHandler} class="word-square ${lockedClass} ${selectedClass} p-2 flex flex-col justify-between cursor-pointer select-none">
+          <!-- 北方詞語 -->
+          <div class="text-center font-black text-xs sm:text-sm md:text-base text-[#4A3222] bg-amber-50/90 rounded-lg py-0.5 px-1 truncate">
+            ${wN}
+          </div>
+
+          <!-- 中間：西方詞語 + 中心控制鈕 + 東方詞語 -->
+          <div class="flex items-center justify-between gap-1 my-auto">
+            <div class="font-black text-xs sm:text-sm text-[#0D74B8] bg-blue-50/90 rounded-lg px-1.5 py-1 max-w-[42%] break-words text-center leading-tight">
+              ${wW}
+            </div>
+
+            <div class="flex flex-col items-center justify-center gap-1 z-10">
+              ${opts.isLocked ? `<span class="text-xs font-black px-2 py-0.5 rounded-full bg-green-600 text-white">🔒 正確</span>` : ""}
+              ${opts.showRotateBtn ? `
+                <button onclick="event.stopPropagation(); rotateCard(${opts.inSlotIdx !== undefined ? `'slot', ${opts.inSlotIdx}` : `'pool', ${opts.inPoolIdx}`})"
+                  class="px-2 py-1 rounded-full bg-[#F3C242] text-[#4A3222] text-[11px] font-black shadow hover:brightness-105">
+                  🔄 90°
+                </button>
+              ` : ""}
+              ${opts.showRemoveBtn ? `
+                <button onclick="event.stopPropagation(); removeCardFromSlot(${opts.inSlotIdx})"
+                  class="px-2 py-0.5 rounded-full bg-red-100 text-red-700 text-[10px] font-black hover:bg-red-200">
+                  ✖ 移出
+                </button>
+              ` : ""}
+            </div>
+
+            <div class="font-black text-xs sm:text-sm text-[#E63E7A] bg-pink-50/90 rounded-lg px-1.5 py-1 max-w-[42%] break-words text-center leading-tight">
+              ${wE}
+            </div>
+          </div>
+
+          <!-- 南方詞語 -->
+          <div class="text-center font-black text-xs sm:text-sm md:text-base text-[#4A3222] bg-amber-50/90 rounded-lg py-0.5 px-1 truncate">
+            ${wS}
+          </div>
+        </div>
+      `;
+    }
+
+    function selectPoolCard(poolIdx) {
+      if (!state.activePuzzle || state.activePuzzle.finished) return;
+      SoundFX.click();
+      // 如果已經有空槽，而玩家直接再撳多次同一張卡，自動擺入第一個空槽（極速操作體驗！）
+      if (state.selectedPoolIndex === poolIdx) {
+        const firstEmpty = state.activePuzzle.slots.findIndex(s => s === null);
+        if (firstEmpty !== -1) {
+          handleSlotClick(firstEmpty);
+          return;
+        }
+      }
+      state.selectedPoolIndex = poolIdx;
+      renderGuessingStage();
+    }
+
+    function handleSlotClick(slotIdx) {
+      const p = state.activePuzzle;
+      if (!p || p.finished || p.lockedSlots[slotIdx]) return;
+
+      if (state.selectedPoolIndex !== null) {
+        const pickedCard = p.pool.splice(state.selectedPoolIndex, 1)[0];
+        if (p.slots[slotIdx]) {
+          // 原本槽入面有卡，交換返落卡池
+          p.pool.push(p.slots[slotIdx]);
+        }
+        p.slots[slotIdx] = pickedCard;
+        state.selectedPoolIndex = null;
+        SoundFX.click();
+        saveState();
+        wsSend({ type: "ACTIVE_PUZZLE_SYNC", activePuzzle: p });
+        renderGuessingStage();
+      } else if (p.slots[slotIdx]) {
+        // 無揀候選卡時直接撳槽入面張卡 -> 順時針轉 90 度
+        rotateCard('slot', slotIdx);
+      }
+    }
+
+    function rotateCard(location, idx) {
+      const p = state.activePuzzle;
+      if (!p || p.finished) return;
+      const target = location === 'slot' ? p.slots[idx] : p.pool[idx];
+      if (!target) return;
+      target.rot = (target.rot + 1) % 4;
+      SoundFX.rotate();
+      saveState();
+      wsSend({ type: "ACTIVE_PUZZLE_SYNC", activePuzzle: p });
+      renderGuessingStage();
+    }
+
+    function removeCardFromSlot(slotIdx) {
+      const p = state.activePuzzle;
+      if (!p || p.finished || p.lockedSlots[slotIdx] || !p.slots[slotIdx]) return;
+      p.pool.push(p.slots[slotIdx]);
+      p.slots[slotIdx] = null;
+      SoundFX.click();
+      saveState();
+      wsSend({ type: "ACTIVE_PUZZLE_SYNC", activePuzzle: p });
+      renderGuessingStage();
+    }
+
+    // 核對答案邏輯 (支援第 1 次全中 6 分，第 2 次每張 1 分)
+    function submitVerification() {
+      const p = state.activePuzzle;
+      if (!p || p.finished) return;
+
+      if (p.slots.some(s => s === null)) {
+        alert("請先將 4 張字卡擺滿四葉草板嘅 4 個槽位先再核對！");
+        return;
+      }
+
+      let correctCount = 0;
+      for (let i = 0; i < 4; i++) {
+        const placed = p.slots[i];
+        const sol = p.solutionCards[i];
+        const sameCard = placed.words.join(",") === sol.words.join(",");
+        const sameRot = ((placed.rot % 4) + 4) % 4 === ((sol.rot % 4) + 4) % 4;
+        if (sameCard && sameRot) {
+          p.lockedSlots[i] = true;
+          correctCount++;
+        } else {
+          // 擺錯嘅卡喺第 1 次機會後彈返落候選池
+          if (p.attempt === 1) {
+            p.pool.push(placed);
+            p.slots[i] = null;
+          }
+        }
+      }
+
+      const banner = document.getElementById("verifyResultBanner");
+      const titleEl = document.getElementById("verifyResultTitle");
+      const descEl = document.getElementById("verifyResultDesc");
+
+      if (correctCount === 4) {
+        const earned = p.attempt === 1 ? 6 : 4;
+        p.finished = true;
+        markBoardSolved(p.boardId);
+        state.coopTotalScore += earned;
+        SoundFX.success();
+        stopGuessTimer();
+
+        banner.className = "p-4 rounded-2xl text-center space-y-2 bg-green-100 border-3 border-[#5CB346] text-green-900";
+        titleEl.textContent = `🎉 完美還原四葉草！獲得 ${earned} 分！`;
+        descEl.textContent = p.attempt === 1
+          ? "太有默契喇！第 1 次機會就 4 張位置同方向全中，直接攞滿 6 分！"
+          : "第 2 次機會成功還原晒 4 張字卡，獲得 4 分！";
+        document.getElementById("btnVerifyGuess").classList.add("hidden");
+      } else if (p.attempt === 1) {
+        p.attempt = 2;
+        SoundFX.wrong();
+        banner.className = "p-4 rounded-2xl text-center space-y-2 bg-amber-100 border-3 border-[#F3C242] text-[#4A3222]";
+        titleEl.textContent = `🍀 第 1 次核對：中咗 ${correctCount} 張！`;
+        descEl.textContent = `答啱嘅 ${correctCount} 張卡已經鎖定 ✅，擺錯嘅卡已經彈返去候選池，請把握【第 2 次機會】！`;
+      } else {
+        // 第 2 次機會結束
+        p.finished = true;
+        markBoardSolved(p.boardId);
+        state.coopTotalScore += correctCount;
+        // 自動將正確答案擺返入去畀大家對照
+        p.slots = JSON.parse(JSON.stringify(p.solutionCards));
+        p.lockedSlots = [true, true, true, true];
+        SoundFX.wrong();
+        stopGuessTimer();
+
+        banner.className = "p-4 rounded-2xl text-center space-y-2 bg-blue-100 border-3 border-[#1EA1E8] text-[#0D74B8]";
+        titleEl.textContent = `💡 本局結束！共擺啱 ${correctCount} 張，獲得 ${correctCount} 分！`;
+        descEl.textContent = "系統已經為大家自動還原出題者原本嘅四葉草正確方向，一齊睇下點解佢會咁出題啦！";
+        document.getElementById("btnVerifyGuess").classList.add("hidden");
+      }
+
+      saveState();
+      renderScoreboard();
+      wsSend({ type: "ACTIVE_PUZZLE_SYNC", activePuzzle: p });
+      renderGuessingStage();
+    }
+
+    function markBoardSolved(boardId) {
+      const b = state.submittedBoards.find(x => x.id === boardId);
+      if (b) b.solved = true;
+    }
+
+    function goToNextPuzzleOrLobby() {
+      SoundFX.click();
+      const nextUnsolved = state.submittedBoards.find(b => !b.solved);
+      if (nextUnsolved) {
+        launchBoardForGuessing(nextUnsolved.id);
+      } else {
+        switchView("viewWriting");
+        renderSubmittedBoardsList();
+      }
+    }
+
+    /*************************************************************************
+     * 8. 計時器、計分板與主持 God-Mode 控制
+     *************************************************************************/
+    function startGuessTimer(seconds) {
+      stopGuessTimer();
+      timeRemaining = Number(seconds) || 0;
+      timerPaused = false;
+      updateTimerUI();
+      if (timeRemaining <= 0) {
+        document.getElementById("timerDisplay").textContent = "不限時";
+        return;
+      }
+      timerInterval = setInterval(() => {
+        if (!timerPaused && timeRemaining > 0) {
+          timeRemaining--;
+          updateTimerUI();
+          if (timeRemaining === 0) {
+            SoundFX.wrong();
+          }
+        }
+      }, 1000);
+    }
+
+    function stopGuessTimer() {
+      if (timerInterval) clearInterval(timerInterval);
+      timerInterval = null;
+    }
+
+    function toggleTimerPause() {
+      timerPaused = !timerPaused;
+      SoundFX.click();
+    }
+
+    function updateTimerUI() {
+      if (timeRemaining <= 0 && Number(state.timerSeconds) === 0) {
+        document.getElementById("timerDisplay").textContent = "不限時";
+        return;
+      }
+      const m = String(Math.floor(timeRemaining / 60)).padStart(2, "0");
+      const s = String(timeRemaining % 60).padStart(2, "0");
+      document.getElementById("timerDisplay").textContent = `${m}:${s}`;
+    }
+
+    function renderScoreboard() {
+      document.getElementById("coopScoreDisplay").textContent = `全場默契總分：${state.coopTotalScore} 分`;
+      const container = document.getElementById("teamsContainer");
+      container.innerHTML = state.teams.map(t => `
+        <div class="bg-[#0D74B8] text-white px-4 py-1.5 rounded-full border-2 border-white shadow flex items-center gap-2">
+          <span class="font-black text-sm md:text-base">${escapeHtml(t.name)}</span>
+          <span class="bg-[#F3C242] text-[#4A3222] px-2.5 py-0.5 rounded-full font-black text-xs md:text-sm">${t.score} 分</span>
+        </div>
+      `).join("");
+
+      // 渲染主持後台加減分控制
+      const hostList = document.getElementById("hostScoreAdjustList");
+      if (hostList) {
+        hostList.innerHTML = state.teams.map((t, idx) => `
+          <div class="bg-gray-50 border-2 border-gray-200 rounded-xl p-2.5 flex items-center justify-between">
+            <span class="font-black text-xs md:text-sm truncate">${escapeHtml(t.name)} (${t.score}分)</span>
+            <div class="flex gap-1">
+              <button onclick="adjustTeamScore(${idx}, 1)" class="px-2.5 py-1 rounded-lg bg-[#5CB346] text-white font-black text-xs">+1</button>
+              <button onclick="adjustTeamScore(${idx}, 6)" class="px-2.5 py-1 rounded-lg bg-[#E63E7A] text-white font-black text-xs">+6</button>
+              <button onclick="adjustTeamScore(${idx}, -1)" class="px-2.5 py-1 rounded-lg bg-gray-300 text-gray-800 font-black text-xs">-1</button>
+            </div>
+          </div>
+        `).join("");
+      }
+    }
+
+    function adjustTeamScore(teamIdx, delta) {
+      if (!state.teams[teamIdx]) return;
+      state.teams[teamIdx].score += delta;
+      SoundFX.click();
+      saveState();
+      renderScoreboard();
+      wsSend({ type: "SYNC_TEAMS", teams: state.teams });
+    }
+
+    function addNewTeamPrompt() {
+      const name = prompt("請輸入新組別或團友名稱：", `第 ${state.teams.length + 1} 組`);
+      if (!name) return;
+      state.teams.push({ id: "t_" + Date.now(), name: name.trim(), score: 0 });
+      saveState();
+      renderScoreboard();
+      wsSend({ type: "SYNC_TEAMS", teams: state.teams });
+    }
+
+    function toggleHostDrawer() {
+      const el = document.getElementById("hostDrawerContent");
+      const isHidden = el.classList.toggle("hidden");
+      document.getElementById("hostDrawerArrow").textContent = isHidden ? "展開 ▼" : "收起 ▲";
+    }
+
+    function hostPeekSolution() {
+      const p = state.activePuzzle;
+      if (!p) {
+        alert("請先開始一局競猜！");
+        return;
+      }
+      if (!confirm("確定要喺大螢幕直接自動排好正確答案嗎？")) return;
+      p.slots = JSON.parse(JSON.stringify(p.solutionCards));
+      p.lockedSlots = [true, true, true, true];
+      p.finished = true;
+      SoundFX.success();
+      saveState();
+      wsSend({ type: "ACTIVE_PUZZLE_SYNC", activePuzzle: p });
+      renderGuessingStage();
+    }
+
+    function showFinalPodium() {
+      SoundFX.success();
+      stopGuessTimer();
+      switchView("viewPodium");
+      document.getElementById("podiumSummaryText").textContent =
+        `全場共完成 ${state.submittedBoards.filter(b => b.solved).length} 塊四葉草板・全場默契累積 ${state.coopTotalScore} 分！`;
+
+      const sorted = [...state.teams].sort((a, b) => b.score - a.score);
+      const medals = ["🥇 冠軍", "🥈 亞軍", "🥉 季軍"];
+      document.getElementById("podiumRankingGrid").innerHTML = sorted.map((t, i) => `
+        <div class="bg-white rounded-3xl p-5 shadow-lg border-4 ${i === 0 ? 'border-[#E63E7A] scale-105' : 'border-white'} space-y-2">
+          <div class="text-xs font-black px-3 py-1 rounded-full inline-block ${i === 0 ? 'bg-[#E63E7A] text-white' : 'bg-gray-100 text-gray-700'}">
+            ${medals[i] || `第 ${i + 1} 名`}
+          </div>
+          <div class="text-xl font-black text-[#4A3222]">${escapeHtml(t.name)}</div>
+          <div class="text-3xl font-black text-[#0D74B8]">${t.score} 分</div>
+        </div>
+      `).join("");
+    }
+
+    function backToLobbyView() {
+      SoundFX.click();
+      switchView("viewLobby");
+    }
+
+    function confirmResetGame() {
+      if (!confirm("確定要重開遊戲並清空目前嘅題目同分數嗎？")) return;
+      resetting = true;
+      wsSend({ type: "RESET" });
+      localStorage.removeItem(STORAGE_KEY);
+      setTimeout(() => location.reload(), 180);
+    }
+
+    /*************************************************************************
+     * 9. Modals (QR Code, Rules, Settings/Deck Editor)
+     *************************************************************************/
+    function openQRModal() {
+      SoundFX.click();
+      const urlObj = new URL(window.location.href);
+      urlObj.searchParams.set("room", state.roomId || "8888");
+      const shareUrl = urlObj.toString();
+      document.getElementById("qrUrlText").textContent = shareUrl;
+      document.getElementById("qrCodeImg").src =
+        `https://api.qrserver.com/v1/create-qr-code/?size=260x260&data=${encodeURIComponent(shareUrl)}`;
+      document.getElementById("modalQR").classList.remove("hidden");
+    }
+    function closeQRModal() { document.getElementById("modalQR").classList.add("hidden"); }
+
+    function copyShareUrl() {
+      const txt = document.getElementById("qrUrlText").textContent;
+      navigator.clipboard.writeText(txt).then(() => alert("✅ 已複製房間連結！"));
+    }
+
+    function openRulesModal() {
+      SoundFX.click();
+      document.getElementById("modalRules").classList.remove("hidden");
+    }
+    function closeRulesModal() { document.getElementById("modalRules").classList.add("hidden"); }
+
+    function openSettingsModal() {
+      SoundFX.click();
+      document.getElementById("inputWorkerUrl").value = state.workerUrl || "";
+      document.getElementById("textareaWordDeck").value = state.wordDeck.map(c => c.join(", ")).join("\n");
+      document.getElementById("deckCountLabel").textContent = `共 ${state.wordDeck.length} 張卡`;
+      document.getElementById("modalSettings").classList.remove("hidden");
+    }
+    function closeSettingsModal() { document.getElementById("modalSettings").classList.add("hidden"); }
+
+    function updateSettingsFromUI() {
+      state.decoyCount = Number(document.getElementById("selectDecoyCount").value) || 1;
+      state.timerSeconds = Number(document.getElementById("selectTimerSeconds").value) || 0;
+      saveState();
+    }
+
+    function saveSettingsAndDeck() {
+      state.workerUrl = document.getElementById("inputWorkerUrl").value.trim();
+      const lines = document.getElementById("textareaWordDeck").value
+        .split("\n")
+        .map(l => l.split(/[,，]/).map(s => s.trim()).filter(Boolean))
+        .filter(arr => arr.length >= 4)
+        .map(arr => arr.slice(0, 4));
+
+      if (lines.length < 6) {
+        alert("題庫至少需要 6 張四詞字卡（每行 4 個詞語，用逗號分隔）！");
+        return;
+      }
+      state.wordDeck = lines;
+      saveState();
+      document.getElementById("deckCountLabel").textContent = `共 ${state.wordDeck.length} 張卡`;
+      alert(`✅ 已儲存設定及 ${lines.length} 張四詞字卡！`);
+      closeSettingsModal();
+    }
+
+    function resetDefaultDeck() {
+      state.wordDeck = [...DEFAULT_WORD_CARDS];
+      document.getElementById("textareaWordDeck").value = state.wordDeck.map(c => c.join(", ")).join("\n");
+      document.getElementById("deckCountLabel").textContent = `共 ${state.wordDeck.length} 張卡`;
+      saveState();
+    }
+
+    function exportDeckJson() {
+      const blob = new Blob([JSON.stringify(state.wordDeck, null, 2)], { type: "application/json" });
+      const a = document.createElement("a");
+      a.href = URL.createObjectURL(blob);
+      a.download = "so-clover-word-deck.json";
+      a.click();
+    }
+
+    function escapeHtml(str) {
+      return String(str || "")
+        .replace(/&/g, "&amp;")
+        .replace(/</g, "&lt;")
+        .replace(/>/g, "&gt;")
+        .replace(/"/g, "&quot;");
+    }
+
+    /*************************************************************************
+     * 10. 初始化啟動
+     *************************************************************************/
+    window.addEventListener("DOMContentLoaded", () => {
+      loadState();
+      if (!state.workerUrl || state.workerUrl === "wss://so-clover.ymtwill.workers.dev") {
+        state.workerUrl = defaultWorkerUrl();
+      }
+      const params = new URLSearchParams(window.location.search);
+      if (params.get("room")) {
+        state.roomId = params.get("room");
+      }
+      document.getElementById("inputRoomId").value = state.roomId || "8888";
+      document.getElementById("inputPlayerName").value = state.playerName || "";
+      document.getElementById("selectDecoyCount").value = String(state.decoyCount || 1);
+      document.getElementById("selectTimerSeconds").value = String(state.timerSeconds ?? 180);
+
+      renderScoreboard();
+      renderSubmittedBoardsList();
+      syncRoleChrome();
+
+      // 如果網址帶有 ?room=XXXX，方便手機團友直接入房
+      if (params.get("room")) {
+        updateConnBadge(`準備加入 #${state.roomId}`, "bg-[#F3C242]");
+      }
+    });
+  </script>
+</body>
+</html>

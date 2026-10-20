@@ -1,0 +1,25 @@
+{
+  "name": "so-clover",
+  "account_id": "db0374b37171e14e52b085a4b4f0d1dc",
+  "main": "worker.js",
+  "compatibility_date": "2026-10-20",
+  "assets": {
+    "directory": "./public",
+    "binding": "ASSETS",
+    "html_handling": "auto-trailing-slash",
+    "not_found_handling": "single-page-application",
+    "run_worker_first": ["/ws"]
+  },
+  "durable_objects": {
+    "bindings": [
+      { "name": "SO_CLOVER_ROOM", "class_name": "SoCloverRoom" }
+    ]
+  },
+  "migrations": [
+    { "tag": "v1", "new_sqlite_classes": ["SoCloverRoom"] }
+  ],
+  "observability": {
+    "enabled": true,
+    "head_sampling_rate": 1
+  }
+}
